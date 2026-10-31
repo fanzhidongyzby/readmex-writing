@@ -13,7 +13,7 @@ git clone https://github.com/fanzhidongyzby/readmex-writing.git ~/.claude/skills
 ## 默认与可选能力
 
 - 默认：Markdown草稿；新写、访谈、复盘、编辑、发布前校对。
-- 图文可选：可使用PNG/JPEG/WebP与可编辑源，通用检查不强制品牌。EvoMap风格可另安装[evomap-illustrator](https://github.com/fanzhidongyzby/evomap-illustrator)，PNG导出需rsvg-convert。
+- 图文可选：可使用PNG/JPEG/WebP与可编辑源，通用检查不强制品牌。只要制作封面，默认采用公众号主封面 **1200×511（约2.35:1）**，用户明确指定其他尺寸时覆盖；这个默认同时适用于generic与evomap，不依赖个人配置。EvoMap风格可另安装[evomap-illustrator](https://github.com/fanzhidongyzby/evomap-illustrator)，PNG导出需rsvg-convert。
 - 飞书review可选：需要用户自己的lark-cli、相应lark技能、登录及权限。包内没有私人文档、账号或默认知识库节点。
 - 图片托管、公众号后台转存与社区发布需另行授权和实际工具；本包不承诺自动发布或账号操作。
 
@@ -35,7 +35,7 @@ python3 -I scripts/validate_article.py --article article.md --manifest manifest.
 
 选择EvoMap视觉检查时用 `--profile evomap`。不提供profile可继承本地偏好。manifest支持 `reference_heading`、`required_figure_sections`、`image_profile`及明确的用户格式覆盖。
 
-通用模式允许不带图或外部引用的原创草稿，允许不编号标题、不同来源标题和原图色彩。EvoMap模式保留白底、不透明、颜色比例、短标题、编号、封面及SVG源等约束。
+通用模式允许不带图或外部引用的原创草稿，允许不编号标题、不同来源标题和原图色彩。制作封面时，两种profile都默认检查实际1200×511尺寸及可用SVG画布；`cover_size: null`仍回退默认值，其他平台需显式填写目标尺寸。EvoMap模式另外保留白底、不透明、颜色比例、短标题、编号、封面及SVG源等约束。
 
 RGB/RGBA8位PNG可实际解码检查；其他PNG、JPEG/WebP只做基础格式和尺寸检查，SVG做安全性检查。工具不会联网证明来源公开性，不判事实、论述质量、视觉布局或平台渲染。不同URL、粗体引言、代码围栏、嵌套括号与工作区资产边界有回归覆盖。
 

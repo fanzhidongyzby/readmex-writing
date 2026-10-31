@@ -236,6 +236,60 @@ class ArticleTests(unittest.TestCase):
         self.md.write_text(self.content.replace("## 参考文献", "## 参考资料"))
         self.assertTrue(validator.validate(self.md, self.manifest)["passed"])
 
+    def test_generic_cover_defaults_to_wechat_dimensions(self):
+        result = _raw_validate(self.md, self.manifest, profile='generic', use_local=False)
+        self.assertTrue(result['passed'])
+        self.assertEqual(result['cover_size'], [1200, 511])
+
+    def test_generic_rejects_double_scale_cover(self):
+        make_cover_png(self.root/self.data['figures'][0]['png'], width=2400, height=1022)
+        with self.assertRaisesRegex(AssertionError, 'expected 1200x511'):
+            _raw_validate(self.md, self.manifest, profile='generic', use_local=False)
+
+    def test_generic_rejects_square_cover_by_default(self):
+        make_png(self.root/self.data['figures'][0]['png'])
+        with self.assertRaisesRegex(AssertionError, 'expected 1200x511'):
+            _raw_validate(self.md, self.manifest, profile='generic', use_local=False)
+
+    def test_generic_accepts_explicit_other_cover_dimensions(self):
+        self.data['cover_size'] = [8, 8]
+        self.manifest.write_text(json.dumps(self.data))
+        make_png(self.root/self.data['figures'][0]['png'])
+        p = self.root/self.data['figures'][0]['svg']
+        p.write_text(p.read_text().replace('width="1200"', 'width="8"').replace('height="511"', 'height="8"'))
+        result = _raw_validate(self.md, self.manifest, profile='generic', use_local=False)
+        self.assertEqual(result['cover_size'], [8, 8])
+
+    def test_generic_checks_cover_svg_canvas(self):
+        p = self.root/self.data['figures'][0]['svg']
+        p.write_text(p.read_text().replace('width="1200"', 'width="2400"'))
+        with self.assertRaisesRegex(AssertionError, 'same canvas dimensions'):
+            _raw_validate(self.md, self.manifest, profile='generic', use_local=False)
+
+    def test_null_cover_size_keeps_wechat_default(self):
+        self.data['cover_size'] = None
+        self.manifest.write_text(json.dumps(self.data))
+        result = _raw_validate(self.md, self.manifest, profile='generic', use_local=False)
+        self.assertEqual(result['cover_size'], [1200, 511])
+        make_cover_png(self.root/self.data['figures'][0]['png'], width=2400, height=1022)
+        with self.assertRaises(AssertionError):
+            _raw_validate(self.md, self.manifest, profile='generic', use_local=False)
+
+    def test_malformed_cover_size_rejected(self):
+        for value in ([1200], [1200, 511, 1], [0, 511], [1200, -1], [True, 511], '1200x511'):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                validator._profiles.load_settings({'cover_size': value}, profile='generic', use_local=False)
+
+    def test_cover_dimensions_are_not_shared_mutable_state(self):
+        first = validator._profiles.load_settings(profile='generic', use_local=False)
+        first['cover_size'][0] = 2400
+        second = validator._profiles.load_settings(profile='evomap', use_local=False)
+        self.assertEqual(second['cover_size'], [1200, 511])
+        explicit = [800, 800]
+        settings = validator._profiles.load_settings({'cover_size': explicit}, profile='generic', use_local=False)
+        settings['cover_size'][0] = 400
+        self.assertEqual(explicit, [800, 800])
+
     def test_generic_text_without_images_or_references(self):
         self.md.write_text('# 一个判断\n\n这是一段不含外部事实引用的原创观点。\n')
         self.manifest.write_text('{}')

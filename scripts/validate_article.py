@@ -296,7 +296,7 @@ def validate(article,manifest,profile=None,use_local=True):
         cover_size=options['cover_size']
         if cover and cover_size is not None:
             assert len(cover_size)==2 and all(type(v) is int and v>0 for v in cover_size), 'Invalid cover size'
-            assert (metrics['width'],metrics['height'])==tuple(cover_size), 'Cover PNG must have the expected actual pixel dimensions'
+            assert (metrics['width'],metrics['height'])==tuple(cover_size), f"Cover image is {metrics['width']}x{metrics['height']}; expected {cover_size[0]}x{cover_size[1]}"
         svg_value=figure.get('svg')
         if options['require_svg_sources']: assert svg_value, 'Both PNG and SVG required'
         if svg_value:
